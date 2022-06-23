@@ -14,13 +14,14 @@ import io.qalipsis.api.context.StepContext
 import io.qalipsis.api.steps.StepCreationContext
 import io.qalipsis.api.steps.StepCreationContextImpl
 import io.qalipsis.test.assertk.prop
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 /**
  *
@@ -30,6 +31,10 @@ import org.junit.jupiter.api.Test
 @WithMockk
 internal class RabbitMqProducerStepSpecificationConverterTest :
     AbstractStepSpecificationConverterTest<RabbitMqProducerStepSpecificationConverter>() {
+
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
 
     @RelaxedMockK
     private lateinit var connectionFactory: ConnectionFactory
@@ -45,7 +50,7 @@ internal class RabbitMqProducerStepSpecificationConverterTest :
     }
 
     @Test
-    internal fun `should convert spec with name`() = runBlockingTest {
+    internal fun `should convert spec with name`() = testDispatcherProvider.runTest {
         val rec1 = RabbitMqProducerRecord(
             exchange = "dest-1",
             routingKey = "key-1",
@@ -88,7 +93,7 @@ internal class RabbitMqProducerStepSpecificationConverterTest :
         // then
         creationContext.createdStep!!.let {
             assertThat(it).isInstanceOf(RabbitMqProducerStep::class).all {
-                prop("id").isEqualTo("my-step")
+                prop("name").isEqualTo("my-step")
                 prop("recordFactory").isEqualTo(recordSupplier)
                 prop("rabbitMqProducer").isNotNull().all {
                     prop("connectionFactory").isEqualTo(connectionFactory)

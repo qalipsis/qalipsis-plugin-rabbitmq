@@ -67,7 +67,7 @@ internal class rabbitmqConsumerStepSpecificationTest {
                 virtualHost = "/guest"
                 clientProperties = mapOf("t" to "test")
             }
-            forwardOnce(6, Duration.ofDays(1))
+            unicast(6, Duration.ofDays(1))
         }
 
         assertThat(scenario.rootSteps.first()).isInstanceOf(RabbitMqConsumerStepSpecificationImpl::class).all {

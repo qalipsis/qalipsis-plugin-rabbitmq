@@ -20,12 +20,13 @@ import io.qalipsis.api.steps.datasource.DatasourceObjectConverter
 import io.qalipsis.api.steps.datasource.IterativeDatasourceStep
 import io.qalipsis.api.steps.datasource.processors.NoopDatasourceObjectProcessor
 import io.qalipsis.test.assertk.prop
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.WithMockk
 import io.qalipsis.test.mockk.relaxedMockk
 import io.qalipsis.test.steps.AbstractStepSpecificationConverterTest
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
 
 /**
  * @author Gabriel Moraes
@@ -34,6 +35,10 @@ import org.junit.jupiter.api.Test
 @WithMockk
 internal class RabbitMqConsumerStepSpecificationConverterTest :
     AbstractStepSpecificationConverterTest<RabbitMqConsumerStepSpecificationConverter>() {
+
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
 
     @RelaxedMockK
     private lateinit var mockkedConnectionFactory: ConnectionFactory
@@ -50,7 +55,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
     }
 
     @Test
-    internal fun `should convert spec with name and queue`() = runBlockingTest {
+    internal fun `should convert spec with name and queue`() = testDispatcherProvider.runTest {
         // given
         val deserializer = MessageStringDeserializer()
         val spec = RabbitMqConsumerStepSpecificationImpl(deserializer)
@@ -84,7 +89,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
         // then
         creationContext.createdStep!!.let {
             assertThat(it).isInstanceOf(IterativeDatasourceStep::class).all {
-                prop("id").isEqualTo("my-step")
+                prop("name").isEqualTo("my-step")
                 prop("reader").isNotNull().isInstanceOf(RabbitMqConsumerIterativeReader::class).all {
                     prop("prefetchCount").isEqualTo(10)
                     prop("concurrency").isEqualTo(2)
@@ -98,7 +103,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
     }
 
     @Test
-    internal fun `should convert spec without name but with queue`() = runBlockingTest {
+    internal fun `should convert spec without name but with queue`() = testDispatcherProvider.runTest {
         // given
         val deserializer = MessageStringDeserializer()
         val spec = RabbitMqConsumerStepSpecificationImpl(deserializer)
@@ -132,7 +137,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
         // then
         creationContext.createdStep!!.let {
             assertThat(it).isInstanceOf(IterativeDatasourceStep::class).all {
-                prop("id").isNotNull().isEqualTo(stepIdSlot.captured)
+                prop("name").isNotNull().isEqualTo(stepIdSlot.captured)
                 prop("reader").isNotNull().isInstanceOf(RabbitMqConsumerIterativeReader::class).all {
                     prop("prefetchCount").isEqualTo(10)
                     prop("concurrency").isEqualTo(2)
@@ -146,7 +151,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
     }
 
     @Test
-    internal fun `should log meters`() = runBlockingTest {
+    internal fun `should log meters`() = testDispatcherProvider.runTest {
         // given
         val deserializer = MessageStringDeserializer()
         val spec = RabbitMqConsumerStepSpecificationImpl(deserializer)
@@ -181,7 +186,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
         // then
         creationContext.createdStep!!.let {
             assertThat(it).isInstanceOf(IterativeDatasourceStep::class).all {
-                prop("id").isNotNull().isEqualTo(stepIdSlot.captured)
+                prop("name").isNotNull().isEqualTo(stepIdSlot.captured)
                 prop("reader").isNotNull().isInstanceOf(RabbitMqConsumerIterativeReader::class).all {
                     prop("meterRegistry").isSameAs(meterRegistry)
                     prop("eventsLogger").isNull()
@@ -197,7 +202,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
     }
 
     @Test
-    internal fun `should log events`() = runBlockingTest {
+    internal fun `should log events`() = testDispatcherProvider.runTest {
         // given
         val deserializer = MessageStringDeserializer()
         val spec = RabbitMqConsumerStepSpecificationImpl(deserializer)
@@ -232,7 +237,7 @@ internal class RabbitMqConsumerStepSpecificationConverterTest :
         // then
         creationContext.createdStep!!.let {
             assertThat(it).isInstanceOf(IterativeDatasourceStep::class).all {
-                prop("id").isNotNull().isEqualTo(stepIdSlot.captured)
+                prop("name").isNotNull().isEqualTo(stepIdSlot.captured)
                 prop("reader").isNotNull().isInstanceOf(RabbitMqConsumerIterativeReader::class).all {
                     prop("meterRegistry").isNull()
                     prop("eventsLogger").isSameAs(eventsLogger)

@@ -18,12 +18,13 @@ import io.qalipsis.api.context.StepOutput
 import io.qalipsis.api.messaging.deserializer.MessageDeserializer
 import io.qalipsis.plugins.rabbitmq.consumer.RabbitMqConsumerRecord
 import io.qalipsis.test.assertk.prop
+import io.qalipsis.test.coroutines.TestDispatcherProvider
 import io.qalipsis.test.mockk.CleanMockkRecordedCalls
 import io.qalipsis.test.mockk.relaxedMockk
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.api.extension.RegisterExtension
 import java.util.concurrent.atomic.AtomicLong
 
 /**
@@ -31,6 +32,10 @@ import java.util.concurrent.atomic.AtomicLong
  */
 @CleanMockkRecordedCalls
 internal class RabbitMqConsumerConverterTest {
+
+    @JvmField
+    @RegisterExtension
+    val testDispatcherProvider = TestDispatcherProvider()
 
     private val valueSerializer: MessageDeserializer<String> = relaxedMockk {
         every { deserialize(any()) } answers { firstArg<ByteArray>().decodeToString() }
@@ -40,7 +45,7 @@ internal class RabbitMqConsumerConverterTest {
 
     @Test
     @Timeout(2)
-    fun `should deserialize without monitoring`() = runBlockingTest {
+    fun `should deserialize without monitoring`() = testDispatcherProvider.runTest {
         executeConversion(valueSerializer = valueSerializer)
 
         confirmVerified(counterBytes, valueSerializer)
