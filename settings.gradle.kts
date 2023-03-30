@@ -17,6 +17,8 @@
 rootProject.name = "qalipsis-plugins-rabbitmq"
 
 include(
-    "rabbitmq"
+    "qalipsis-plugin-rabbitmq"
 )
+
+project(":qalipsis-plugin-rabbitmq").projectDir = File(rootDir, "rabbitmq")
 
